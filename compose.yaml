@@ -1,0 +1,12 @@
+services:
+  bot:
+    build: .
+    container_name: waterbot
+    restart: unless-stopped
+    volumes:
+      - sqlite_data:/app/data
+    env_file:
+      - .env
+
+volumes:
+  sqlite_data:
