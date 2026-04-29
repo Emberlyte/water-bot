@@ -13,6 +13,7 @@ async def init_db():
             CREATE TABLE IF NOT EXISTS users (
             user_id INTEGER PRIMARY KEY,
             poured_water INTEGER DEFAULT 0,
+            poured_water_alltime INTEGER DEFAULT 0,
             kg INTEGER DEFAULT 0,
             goal INTEGER DEFAULT 0,
             last_reset DATE DEFAULT (CURRENT_DATE)

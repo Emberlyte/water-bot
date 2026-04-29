@@ -61,14 +61,20 @@ async def main():
         async with aiosqlite.connect(db_name) as db:
             await check_date(message.from_user.id, db)
 
-            await db.execute("UPDATE users SET poured_water = poured_water + ? WHERE user_id = ?", (water_ml, message.from_user.id,))
+            await db.execute("UPDATE users SET poured_water = poured_water + ?, poured_water_alltime = poured_water_alltime + ? WHERE user_id = ?", (water_ml, water_ml, message.from_user.id,))
             await db.commit()
 
-            async with db.execute("SELECT poured_water FROM users WHERE user_id = ?", (message.from_user.id,)) as cursor:
+            async with db.execute("SELECT poured_water, goal FROM users WHERE user_id = ?", (message.from_user.id,)) as cursor:
                 row = await cursor.fetchone()
-                count = row[0]
 
-        await message.answer(f"Вода добавлена. Всего воды: {count}")
+                if row:
+                    count = row[0]
+                    goal = row[1]
+                else:
+                    count = water_ml
+                    goal = 2000
+
+        await message.answer(f"Вода добавлена. Всего воды: {count} из {goal}")
 
 
     @dp.message(Command("kg"))
@@ -107,6 +113,29 @@ async def main():
 
         await message.answer(f"Ваша цель выпитой воды: {goal_answer}")
 
+    @dp.message(Command("stats"))
+    async def stats_command(message: types.Message):
+        async with aiosqlite.connect(db_name) as db:
+            async with db.execute("SELECT poured_water, poured_water_alltime, kg, goal FROM users WHERE user_id = ?", (message.from_user.id,)) as cursor:
+                row = await cursor.fetchone()
+
+                if row:
+                    poured_water = row[0]
+                    poured_water_all = row[1]
+                    weight = row[2]
+                    goal = row[3]
+                else:
+                    poured_water = 0
+                    poured_water_all = 0
+                    weight = 0
+                    goal = 2000
+
+        await message.answer(
+            f"📊 Статистика:\n"
+            f"💧 Выпито сегодня: {poured_water} / {goal} мл\n"
+            f"🌍 Всего выпито: {poured_water_all} мл\n"
+            f"⚖️ Вес: {weight} кг"
+        )
 
     try:
         await dp.start_polling(bot)
