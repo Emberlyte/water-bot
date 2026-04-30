@@ -29,11 +29,16 @@ if not db_name:
 async def check_date(user_id, db):
     today = datetime.date.today().isoformat()
 
-    async with db.execute("SELECT last_reset FROM users WHERE user_id = ?", (user_id,)) as cursor:
-        row = await cursor.fetchone()
-        if row and row[0] != today:
-            await db.execute("UPDATE users SET poured_water = 0, last_reset = ? WHERE user_id = ?", (today, user_id))
-            await db.commit()
+    try:
+        async with db.execute("SELECT last_reset FROM users WHERE user_id = ?", (user_id,)) as cursor:
+            row = await cursor.fetchone()
+
+            if row and row[0] != today:
+                await db.execute("UPDATE users SET poured_water = 0, last_reset = ? WHERE user_id = ?", (today, user_id))
+                await db.commit()
+            logging.info(f"Проверка даты выполнена для пользователя {user_id}")
+    except Exception as e:
+        logging.error(f"Ошибка при проверке даты: {e}")
 
 async def main():
     await init_db.init_db()
@@ -43,9 +48,13 @@ async def main():
 
     @dp.message(CommandStart())
     async def start_command(message: types.Message):
-        async with aiosqlite.connect(db_name) as db:
-            await db.execute("INSERT OR IGNORE INTO users (user_id) VALUES (?)", (message.from_user.id,))
-            await db.commit()
+        try:
+             async with aiosqlite.connect(db_name) as db:
+                await db.execute("INSERT OR IGNORE INTO users (user_id) VALUES (?)", (message.from_user.id,))
+                await db.commit()
+                logging.info(f"Пользователь {message.from_user.id} добавлен в базу данных")
+        except Exception as e:
+            logging.error(f"Ошибка при добавлении пользователя в базу данных: {e}")
 
         await message.answer(f"Привет, {message.from_user.full_name}!")
 
@@ -58,21 +67,25 @@ async def main():
 
         water_ml = int(command.args)
 
-        async with aiosqlite.connect(db_name) as db:
-            await check_date(message.from_user.id, db)
+        try:
+            async with aiosqlite.connect(db_name) as db:
+                await check_date(message.from_user.id, db)
 
-            await db.execute("UPDATE users SET poured_water = poured_water + ?, poured_water_alltime = poured_water_alltime + ? WHERE user_id = ?", (water_ml, water_ml, message.from_user.id,))
-            await db.commit()
+                await db.execute("UPDATE users SET poured_water = poured_water + ?, poured_water_alltime = poured_water_alltime + ? WHERE user_id = ?", (water_ml, water_ml, message.from_user.id,))
+                await db.commit()
+                logging.info(f"Вода добавлена для пользователя {message.from_user.id}")
 
-            async with db.execute("SELECT poured_water, goal FROM users WHERE user_id = ?", (message.from_user.id,)) as cursor:
-                row = await cursor.fetchone()
+                async with db.execute("SELECT poured_water, goal FROM users WHERE user_id = ?", (message.from_user.id,)) as cursor:
+                    row = await cursor.fetchone()
 
-                if row:
-                    count = row[0]
-                    goal = row[1]
-                else:
-                    count = water_ml
-                    goal = 2000
+                    if row:
+                        count = row[0]
+                        goal = row[1]
+                    else:
+                        count = water_ml
+                        goal = 2000
+        except Exception as e:
+            logging.error(f"Ошибка при добавлении воды: {e}")
 
         await message.answer(f"Вода добавлена. Всего воды: {count} из {goal}")
 
@@ -86,11 +99,15 @@ async def main():
 
         kg_answer = int(command.args)
 
-        async with aiosqlite.connect(db_name) as db:
-            await check_date(message.from_user.id, db)
+        try:
+            async with aiosqlite.connect(db_name) as db:
+                await check_date(message.from_user.id, db)
 
-            await db.execute("UPDATE users SET kg = ? WHERE user_id = ?", (kg_answer, message.from_user.id))
-            await db.commit()
+                await db.execute("UPDATE users SET kg = ? WHERE user_id = ?", (kg_answer, message.from_user.id))
+                await db.commit()
+                logging.info(f"Вес добавлен для пользователя {message.from_user.id}")
+        except Exception as e:
+            logging.error(f"Ошибка при добавлении веса: {e}")
 
         kg_water_counter = kg.counter_water_goal(kg_answer)
 
@@ -105,30 +122,40 @@ async def main():
 
         goal_answer = int(command.args)
 
-        async with aiosqlite.connect(db_name) as db:
-            await check_date(message.from_user.id, db)
+        try:
+            async with aiosqlite.connect(db_name) as db:
+                await check_date(message.from_user.id, db)
 
-            await db.execute("UPDATE users SET goal = ? WHERE user_id = ?", (goal_answer, message.from_user.id))
-            await db.commit()
+                await db.execute("UPDATE users SET goal = ? WHERE user_id = ?", (goal_answer, message.from_user.id))
+                await db.commit()
+                logging.info(f"Цель добавлена для пользователя {message.from_user.id}")
+        except Exception as e:
+            logging.error(f"Ошибка при добавлении цели: {e}")
 
         await message.answer(f"Ваша цель выпитой воды: {goal_answer}")
 
     @dp.message(Command("stats"))
     async def stats_command(message: types.Message):
-        async with aiosqlite.connect(db_name) as db:
-            async with db.execute("SELECT poured_water, poured_water_alltime, kg, goal FROM users WHERE user_id = ?", (message.from_user.id,)) as cursor:
-                row = await cursor.fetchone()
+        try:
+            async with aiosqlite.connect(db_name) as db:
+                async with db.execute("SELECT poured_water, poured_water_alltime, kg, goal FROM users WHERE user_id = ?", (message.from_user.id,)) as cursor:
+                    row = await cursor.fetchone()
 
-                if row:
-                    poured_water = row[0]
-                    poured_water_all = row[1]
-                    weight = row[2]
-                    goal = row[3]
-                else:
-                    poured_water = 0
-                    poured_water_all = 0
-                    weight = 0
-                    goal = 2000
+                    if row:
+                        poured_water = row[0]
+                        poured_water_all = row[1]
+                        weight = row[2]
+                        goal = row[3]
+                    else:
+                        poured_water = 0
+                        poured_water_all = 0
+                        weight = 0
+                        goal = 2000
+
+                logging.info(f"Статистика пользователя {message.from_user.id} получена")
+        except Exception as e:
+            logging.error(f"Ошибка при получении статистики: {e}")
+
 
         await message.answer(
             f"📊 Статистика:\n"
