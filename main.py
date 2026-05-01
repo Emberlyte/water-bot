@@ -9,9 +9,10 @@ from dotenv import load_dotenv
 from aiogram import Bot, Dispatcher
 from aiogram.filters import Command, CommandObject
 from aiogram import types
+from aiogram.client.default import DefaultBotProperties
 
 import init_db
-import kg
+import counter
 
 logging.basicConfig(level=logging.INFO)
 
@@ -43,7 +44,8 @@ async def check_date(user_id, db):
 async def main():
     await init_db.init_db()
 
-    bot = Bot(token=bot_token)
+    bot = Bot(token=bot_token,
+              default=DefaultBotProperties(parse_mode='Markdown'))
     dp = Dispatcher()
 
     @dp.message(CommandStart())
@@ -56,13 +58,24 @@ async def main():
         except Exception as e:
             logging.error(f"Ошибка при добавлении пользователя в базу данных: {e}")
 
-        await message.answer(f"Привет, {message.from_user.full_name}!")
+        await message.answer(
+            f"👋 **Привет, {message.from_user.full_name}!**\n\n"
+            "Я помогу тебе следить за водным балансом. 💧\n\n"
+            "**С чего начать?**\n"
+            "1️⃣ Установи свой вес: `/kg 75`\n"
+            "2️⃣ Установи цель (если стандартная не подходит): `/goal 2000`\n"
+            "3️⃣ Добавляй выпитую воду: `/add 250`"
+        )
 
     @dp.message(Command("add"))
     async def add_water(message: types.Message, command:CommandObject):
 
         if command.args is None or not command.args.isdigit():
-            await message.answer("Пожалуйста, укажи количество воды в мл. Пример: /add 350")
+            await message.answer(
+                "⚠️ **Не указано количество!**\n"
+                "Напишите, сколько мл вы выпили.\n"
+                "Пример: `/add 300`"
+            )
             return
 
         water_ml = int(command.args)
@@ -87,14 +100,21 @@ async def main():
         except Exception as e:
             logging.error(f"Ошибка при добавлении воды: {e}")
 
-        await message.answer(f"Вода добавлена. Всего воды: {count} из {goal}")
+        await message.answer(
+            f"✅ **Данные обновлены!**\n"
+            f"➕ Добавлено: `{water_ml}` мл\n"
+            f"🥤 Сегодня: `{count}` / `{goal}` мл"
+        )
 
 
     @dp.message(Command("kg"))
     async def kg_command(message: types.Message, command: CommandObject):
 
         if command.args is None or not command.args.isdigit():
-            await message.answer("Пожалуйста, твой вес. Пример: /kg 2000")
+            await message.answer(
+                "⚖️ **Укажите ваш вес в килограммах.**\n"
+                "Пример: `/kg 70`"
+            )
             return
 
         kg_answer = int(command.args)
@@ -109,15 +129,22 @@ async def main():
         except Exception as e:
             logging.error(f"Ошибка при добавлении веса: {e}")
 
-        kg_water_counter = kg.counter_water_goal(kg_answer)
+        kg_water_counter = counter.counter_water_goal(kg_answer)
 
-        await message.answer(f"Ваша рекомендуемый объем воды: {kg_water_counter}")
+        await message.answer(
+            f"⚙️ **Вес сохранен: {kg_answer} кг.**\n"
+            f"💧 Рекомендуемая норма для вас: **{kg_water_counter} мл** в день.\n"
+            f"Чтобы применить её, используйте: `/goal {kg_water_counter}`"
+        )
 
     @dp.message(Command("goal"))
     async def goal_command(message: types.Message, command: CommandObject):
 
         if command.args is None or not command.args.isdigit():
-            await message.answer("Пожалуйста, ваша цель выпитой воды. Пример: /goal 2000")
+            await message.answer(
+                "🎯 **Установите дневную цель.**\n"
+                "Пример: `/goal 2500` (в миллилитрах)"
+            )
             return
 
         goal_answer = int(command.args)
@@ -132,12 +159,16 @@ async def main():
         except Exception as e:
             logging.error(f"Ошибка при добавлении цели: {e}")
 
-        await message.answer(f"Ваша цель выпитой воды: {goal_answer}")
+        await message.answer(
+            f"🎯 **Цель установлена: {goal_answer} мл.**\n"
+            "Я буду следить за твоими успехами! 🚀"
+        )
 
     @dp.message(Command("stats"))
     async def stats_command(message: types.Message):
         try:
             async with aiosqlite.connect(db_name) as db:
+                await check_date(message.from_user.id, db)
                 async with db.execute("SELECT poured_water, poured_water_alltime, kg, goal FROM users WHERE user_id = ?", (message.from_user.id,)) as cursor:
                     row = await cursor.fetchone()
 
@@ -149,8 +180,10 @@ async def main():
                     else:
                         poured_water = 0
                         poured_water_all = 0
-                        weight = 0
+                        weight = 60
                         goal = 2000
+
+                liter = counter.counter_water_liter(poured_water_all)
 
                 logging.info(f"Статистика пользователя {message.from_user.id} получена")
         except Exception as e:
@@ -160,7 +193,7 @@ async def main():
         await message.answer(
             f"📊 Статистика:\n"
             f"💧 Выпито сегодня: {poured_water} / {goal} мл\n"
-            f"🌍 Всего выпито: {poured_water_all} мл\n"
+            f"🌍 Всего выпито: {liter} л\n"
             f"⚖️ Вес: {weight} кг"
         )
 
