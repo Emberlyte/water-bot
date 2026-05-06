@@ -3,8 +3,7 @@ def counter_water_goal(kg):
         raise TypeError("Вес должен быть числом")
     if kg < 0:
         raise ValueError("Вес должен быть положительным числом")
-    goal = kg * 30
-    return goal
+    return kg * 30
 
 
 def counter_water_liter(milliliter):
@@ -12,5 +11,4 @@ def counter_water_liter(milliliter):
         raise TypeError("Миллилитры должны быть числом")
     if milliliter < 0:
         raise ValueError("Миллилитры должны быть положительным числом")
-    liter = milliliter / 1000
-    return liter
+    return milliliter / 1000
