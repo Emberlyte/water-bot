@@ -429,17 +429,6 @@ wheels = [
 ]
 
 [[package]]
-name = "sourcery"
-version = "1.43.0"
-source = { registry = "https://pypi.org/simple" }
-wheels = [
-    { url = "https://files.pythonhosted.org/packages/c8/7a/624a3539c5355de0ee9cec4cb9c6d2be6d36ab916c190b365c8462f0f0d5/sourcery-1.43.0-py2.py3-none-macosx_10_9_x86_64.whl", hash = "sha256:6279f505406b9b3455dac2f9646c0e110fdc72857479dc05b788a2cfd28dfa4f", size = 107493269, upload-time = "2026-01-19T15:47:07.456Z" },
-    { url = "https://files.pythonhosted.org/packages/78/f9/058e1026479d2af655be608803d75d96297f4d0a2e98bb510488e384f415/sourcery-1.43.0-py2.py3-none-macosx_11_0_arm64.whl", hash = "sha256:89034e4a800294093614c8c01317e0b051c35d2e7abf089e78f1830984516e04", size = 93553650, upload-time = "2026-01-19T15:48:08.801Z" },
-    { url = "https://files.pythonhosted.org/packages/86/18/4075fe0f6b6a3692d80c9c490792d66f839ed91111afa7aea7869f6f1682/sourcery-1.43.0-py2.py3-none-manylinux1_x86_64.whl", hash = "sha256:a142fb1156dfc205752b546fd24cd6e6bd405ebd7aec1097c339ed0e05724dcd", size = 132906772, upload-time = "2026-01-19T15:49:27.487Z" },
-    { url = "https://files.pythonhosted.org/packages/68/cf/8ac262bd2d1c5527a9d8c437f5bdbabc5dc68690110dbf34b20be090798a/sourcery-1.43.0-py2.py3-none-win_amd64.whl", hash = "sha256:2bd293af561261ffc0bccff82c9f764cd654247aaa29a0b46d4927e4711b0570", size = 91181924, upload-time = "2026-01-19T15:50:24.796Z" },
-]
-
-[[package]]
 name = "typing-extensions"
 version = "4.15.0"
 source = { registry = "https://pypi.org/simple" }
@@ -470,7 +459,6 @@ dependencies = [
     { name = "pytest" },
     { name = "python-dotenv" },
     { name = "ruff" },
-    { name = "sourcery" },
 ]
 
 [package.metadata]
@@ -480,7 +468,6 @@ requires-dist = [
     { name = "pytest", specifier = ">=9.0.3" },
     { name = "python-dotenv", specifier = ">=1.2.2" },
     { name = "ruff", specifier = ">=0.15.12" },
-    { name = "sourcery", specifier = ">=1.43.0" },
 ]
 
 [[package]]

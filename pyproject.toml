@@ -8,5 +8,4 @@ dependencies = [
     "pytest>=9.0.3",
     "python-dotenv>=1.2.2",
     "ruff>=0.15.12",
-    "sourcery>=1.43.0",
 ]
