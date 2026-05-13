@@ -1,6 +1,6 @@
 services:
   bot:
-    image: ghrc.io/emberlyte/water-bot:latest
+    image: ghcr.io/emberlyte/water-bot:latest
     build: .
     container_name: waterbot
     restart: unless-stopped
