@@ -48,6 +48,27 @@ async def check_date(user_id, db: aiosqlite.Connection):
         logging.error(f"Ошибка при проверке даты: {e}")
         return
 
+async def check_goal_water(message: types.Message, user_id: int, db: aiosqlite.Connection):
+    try:
+        async with db.execute("SELECT poured_water, goal FROM users WHERE user_id = ?", (user_id,)) as cursor:
+            row = await cursor.fetchone()
+            
+            if row is None:
+                return
+
+            water = row[0]
+            goal = row[1]
+
+            if water >= goal:
+                await message.answer("Поздравляю! Вы достигли своей цели по потреблению воды! 🎉")
+            else:
+                remaining = goal - water
+                await message.answer(f"Вы выпили {water} мл из {goal} мл. Осталось еще {remaining} мл.")
+                
+    except Exception as e:
+        print(f"Ошибка при проверке воды: {e}")
+        await message.answer("Произошла ошибка при проверке данных.")       
+
 
 async def main():
     await init_db.init_db()
@@ -123,6 +144,7 @@ async def main():
                 else:
                     count = water_ml
                     goal = 2000
+            await check_goal_water(message, message.from_user.id, db)
         except Exception as e:
             logging.error(f"Ошибка при добавлении воды: {e}")
             return
