@@ -1,12 +1,13 @@
 import aiosqlite
 import os
+import logging
 
 from dotenv import load_dotenv
 
 load_dotenv()
 
 DB_NAME = os.getenv("DB_NAME")
-
+logging.basicConfig(level=logging.INFO)
 
 async def init_db():
     async with aiosqlite.connect(str(DB_NAME)) as db:
@@ -20,3 +21,4 @@ async def init_db():
             last_reset DATE DEFAULT (CURRENT_DATE)
             )""")
         await db.commit()
+        logging.info(f"💾 База данных '{DB_NAME}' успешно инициализирована.")
