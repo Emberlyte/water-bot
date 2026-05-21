@@ -5,6 +5,7 @@ from dotenv import load_dotenv
 from aiogram.filters import Command, CommandObject, CommandStart
 
 import database
+import counter
 
 logging.basicConfig(level=logging.INFO)
 
@@ -29,7 +30,7 @@ async def start_command(message: types.Message, db):
             "3️⃣ Добавляй выпитую воду: `/add 250`"
         )
 
-@router.message(Command("message"))
+@router.message(Command("add"))
 async def water_command(message: types.Message, command: CommandObject, db):
 
     if command.args is None or not command.args.isdigit():
