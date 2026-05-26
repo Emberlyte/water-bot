@@ -5,7 +5,6 @@ from dotenv import load_dotenv
 from aiogram.filters import Command, CommandObject, CommandStart
 
 import database
-import counter
 
 logging.basicConfig(level=logging.INFO)
 

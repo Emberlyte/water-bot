@@ -1,7 +1,6 @@
 import os
 import asyncio
 import logging
-import aiosqlite
 
 from dotenv import load_dotenv
 from aiogram import Bot, Dispatcher
